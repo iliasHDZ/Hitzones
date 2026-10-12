@@ -41,13 +41,11 @@ private:
     u32 vertexBuffer = 0;
     std::vector<Vertex> verticies;
     u32 vertexBufferCapacity = 0;
-    u32 vao = 0;
 
     //// FRAMEBUFFER ////
     cocos2d::CCTexture2D* framebufferTexture = nullptr;
     unsigned int fbo = 0;
     cocos2d::CCSize lastScreenSize = {0, 0};
     u32 fullscreenQuadBuffer = 0;
-    u32 fullscreenQuadVAO = 0;
     cocos2d::CCGLProgram* fullscreenShader = nullptr;
 };

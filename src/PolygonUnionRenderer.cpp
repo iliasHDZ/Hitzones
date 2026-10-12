@@ -17,41 +17,20 @@ static float fullscreenQuad[] = {
 PolygonUnionRenderer::~PolygonUnionRenderer() {
     if (vertexBuffer)
         glDeleteBuffers(1, &vertexBuffer);
-    glDeleteVertexArrays(1, &vao);
     if (framebufferTexture)
         framebufferTexture->release();
-    glDeleteVertexArrays(1, &fullscreenQuadVAO);
     glDeleteBuffers(1, &fullscreenQuadBuffer);
 }
-
-#ifndef GL_VERTEX_ARRAY_BINDING
-#define GL_VERTEX_ARRAY_BINDING 0x85B5
-#endif
 
 bool PolygonUnionRenderer::init() {
     setShaderProgram(CCShaderCache::sharedShaderCache()->programForKey(kCCShader_PositionColor));
     fullscreenShader = CCShaderCache::sharedShaderCache()->programForKey(kCCShader_PositionTexture);
-
-    glGenVertexArrays(1, &vao);
-    glGenVertexArrays(1, &fullscreenQuadVAO);
 
     ensureCapacity(256);
 
     glGenBuffers(1, &fullscreenQuadBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, fullscreenQuadBuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(fullscreenQuad), fullscreenQuad, GL_STATIC_DRAW);
-
-    i32 prevVao;
-    glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &prevVao);
-    glBindVertexArray(fullscreenQuadVAO);
-
-    glVertexAttribPointer(kCCVertexAttrib_Position, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
-    glVertexAttribPointer(kCCVertexAttrib_TexCoords, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, (void*)(sizeof(float) * 8));
-
-    glEnableVertexAttribArray(kCCVertexAttrib_Position);
-    glEnableVertexAttribArray(kCCVertexAttrib_TexCoords);
-
-    glBindVertexArray(prevVao);
 
     return true;
 }
@@ -91,14 +70,22 @@ void PolygonUnionRenderer::draw() {
         dirty = false;
     }
 
-    i32 prevVao;
-    glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &prevVao);
-    glBindVertexArray(vao);
+    //// DRAWING THE POLYGONS ////
+
+    ccGLEnableVertexAttribs(kCCVertexAttribFlag_Position | kCCVertexAttribFlag_Color);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+
+    glVertexAttribPointer(kCCVertexAttrib_Position, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
+    glVertexAttribPointer(kCCVertexAttrib_Color, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Vertex), (void*)offsetof(Vertex, color));
 
     glDrawArrays(GL_TRIANGLES, 0, verticies.size());
 
+    //// POST DRAWING ////
+
     glEnable(GL_BLEND);
     glBindFramebuffer(GL_FRAMEBUFFER, prevFramebuffer);
+    
+    //// PREPARING FULLSCREEN DRAW ////
 
     float matrix[] = {
          2,  0, 0, 0,
@@ -113,13 +100,19 @@ void PolygonUnionRenderer::draw() {
 
     ccGLBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    glBindVertexArray(fullscreenQuadVAO);
-
     ccGLBindTexture2D(framebufferTexture->getName());
+    
+    //// FULLSCREEN DRAW ////
+
+    ccGLEnableVertexAttribs(kCCVertexAttribFlag_Position | kCCVertexAttribFlag_TexCoords);
+    glBindBuffer(GL_ARRAY_BUFFER, fullscreenQuadBuffer);
+
+    glVertexAttribPointer(kCCVertexAttrib_Position, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
+    glVertexAttribPointer(kCCVertexAttrib_TexCoords, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, (void*)(sizeof(float) * 8));
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-    glBindVertexArray(prevVao);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void PolygonUnionRenderer::ensureCapacity(u32 capacity) {
@@ -140,18 +133,6 @@ void PolygonUnionRenderer::ensureCapacity(u32 capacity) {
     glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * capacity, NULL, GL_STREAM_DRAW);
 
     dirty = true;
-
-    i32 prevVao;
-    glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &prevVao);
-    glBindVertexArray(vao);
-
-    glVertexAttribPointer(kCCVertexAttrib_Position, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
-    glVertexAttribPointer(kCCVertexAttrib_Color, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Vertex), (void*)offsetof(Vertex, color));
-
-    glEnableVertexAttribArray(kCCVertexAttrib_Position);
-    glEnableVertexAttribArray(kCCVertexAttrib_Color);
-
-    glBindVertexArray(prevVao);
 }
 
 void PolygonUnionRenderer::addConvexPolygon(std::span<const CCPoint> points, const ccColor4F& colorFloat) {

@@ -41,7 +41,7 @@
 			"type": "float",
 			"name": "Fill opacity",
 			"description": "Opacity of the inside area of the hitzones",
-			"default": 0.5,
+			"default": 0.4,
 			"min": 0,
 			"max": 1.0
 		},

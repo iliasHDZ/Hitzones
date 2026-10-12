@@ -24,6 +24,10 @@ PolygonUnionRenderer::~PolygonUnionRenderer() {
     glDeleteBuffers(1, &fullscreenQuadBuffer);
 }
 
+#ifndef GL_VERTEX_ARRAY_BINDING
+#define GL_VERTEX_ARRAY_BINDING 0x85B5
+#endif
+
 bool PolygonUnionRenderer::init() {
     setShaderProgram(CCShaderCache::sharedShaderCache()->programForKey(kCCShader_PositionColor));
     fullscreenShader = CCShaderCache::sharedShaderCache()->programForKey(kCCShader_PositionTexture);

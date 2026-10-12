@@ -1,0 +1,69 @@
+{
+	"geode": "5.10.1",
+	"gd": {
+		"win": "2.2081",
+		"android": "2.2081",
+		"mac": "2.2081",
+		"ios": "2.2081"
+	},
+	"id": "iliashdz.hitzones",
+	"name": "Hitzones",
+	"version": "v1.0.0",
+	"developer": "IliasHDZ",
+	"description": "Reimagines hitboxes with the player as a point",
+	"dependencies": {
+		"geode.node-ids": ">=v1.23.3"
+	},
+	"tags": [
+		"enhancement",
+		"utility",
+		"offline"
+	],
+	"settings": {
+		"enabled": {
+			"type": "bool",
+			"name": "Enabled by default",
+			"description": "Hitzones will already be visible when entering a level",
+			"default": false
+		},
+		"toggle-enabled": {
+            "type": "keybind",
+            "name": "Toggle enable hotkey",
+            "default": "`"
+        },
+		"hitzones-on-death": {
+			"type": "bool",
+			"name": "Hitzones on death",
+			"description": "When dead, hitzones will be visible",
+			"default": false
+		},
+		"fill-opacity": {
+			"type": "float",
+			"name": "Fill opacity",
+			"description": "Opacity of the inside area of the hitzones",
+			"default": 0.5,
+			"min": 0,
+			"max": 1.0
+		},
+		"border-opacity": {
+			"type": "float",
+			"name": "Border opacity",
+			"description": "Opacity of the borders of the hitzones",
+			"default": 1.0,
+			"min": 0,
+			"max": 1.0
+		},
+		"show-trail-line": {
+			"type": "bool",
+			"name": "Show trail line",
+			"description": "Shows the green path that trails the player",
+			"default": true
+		},
+		"show-player-center-point": {
+			"type": "bool",
+			"name": "Show player center point",
+			"description": "Shows a red point at the player's center",
+			"default": true
+		}
+	}
+}

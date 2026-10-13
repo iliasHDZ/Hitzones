@@ -45,7 +45,6 @@ struct PathPoint {
 static std::vector<PathPoint> playerPath;
 
 static bool hitzonesEnabled = false;
-static bool wasPlayerDead = false;
 static bool hitzonesOnDeath = false;
 static bool showTrailLine = false;
 
@@ -92,7 +91,6 @@ class $modify(MyPlayLayer, PlayLayer) {
 		m_fields->drawNode = node1;
 
 		playerPath.clear();
-		wasPlayerDead = false;
 
 		hitzonesEnabled = Mod::get()->getSettingValue<bool>("enabled");
 		hitzonesOnDeath = Mod::get()->getSettingValue<bool>("hitzones-on-death");
@@ -104,19 +102,15 @@ class $modify(MyPlayLayer, PlayLayer) {
 	void resetLevel() {
 		PlayLayer::resetLevel();
 		playerPath.clear();
-		wasPlayerDead = false;
 	}
 
 	void updateVisibility(float dt) {
-		if (hitzonesOnDeath && wasPlayerDead != m_playerDied) {
-			hitzonesEnabled = m_playerDied;
-			wasPlayerDead = m_playerDied;
-		}
+		bool isEnabled = hitzonesEnabled || (hitzonesOnDeath && m_playerDied);
 
-		if (m_fields->renderer) m_fields->renderer->setVisible(hitzonesEnabled);
-		if (m_fields->drawNode) m_fields->drawNode->setVisible(hitzonesEnabled);
+		if (m_fields->renderer) m_fields->renderer->setVisible(isEnabled);
+		if (m_fields->drawNode) m_fields->drawNode->setVisible(isEnabled);
 		
-		if (showTrailLine && (hitzonesOnDeath || hitzonesEnabled)) {
+		if (showTrailLine && (hitzonesOnDeath || isEnabled)) {
 			for (auto& point : playerPath)
 				point.lifetime -= dt;
 
@@ -126,7 +120,7 @@ class $modify(MyPlayLayer, PlayLayer) {
 			playerPath.push_back({m_player1->getRealPosition(), kPathLifetime});
 		}
 
-		if (!hitzonesEnabled || !m_fields->renderer)
+		if (!isEnabled || !m_fields->renderer)
 			return PlayLayer::updateVisibility(dt);
 
 		m_fields->renderer->clear();

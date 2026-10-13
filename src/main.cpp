@@ -149,7 +149,7 @@ class $modify(MyPlayLayer, PlayLayer) {
 			if (obj == m_anticheatSpike)
 				continue;
 
-			switch (obj->getType()) {
+			switch (obj->m_objectType) {
 			case GameObjectType::Hazard:
 				hazards.push_back(obj);
 				break;
@@ -159,9 +159,6 @@ class $modify(MyPlayLayer, PlayLayer) {
 				break;
 			default:
 			}
-
-			if (obj->getType() != GameObjectType::Hazard)
-				continue;
 		}
 
 		const CCRect& playerHitbox = m_player1->getObjectRect();
@@ -172,7 +169,7 @@ class $modify(MyPlayLayer, PlayLayer) {
 		for (auto obj : solids) {
 			CCRect hitbox = obj->getObjectRect();
 			
-			if (obj->getType() == GameObjectType::Slope) {
+			if (obj->m_objectType == GameObjectType::Slope) {
 				auto cornerVec = CCPoint(hitbox.getMaxX(), hitbox.getMinY()) - obj->getRealPosition();
 				auto vecX = CCPoint(-hitbox.size.width, 0);
 				auto vecY = CCPoint(0, hitbox.size.height);

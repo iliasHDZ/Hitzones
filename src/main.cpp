@@ -146,8 +146,8 @@ class $modify(MyPlayLayer, PlayLayer) {
 		m_fields->renderer->clear();
 		m_fields->drawNode->clear();
 
-		player1Path.draw(m_fields->drawNode);
-		player2Path.draw(m_fields->drawNode);
+		player1Path.draw(m_fields->drawNode, ccColor3B {0, 255, 0});
+		player2Path.draw(m_fields->drawNode, ccColor3B { 0, 200, 255 });
 
 		if (Mod::get()->getSettingValue<bool>("show-player-center-point")) {
 			const ccColor4F circleColor = {1, 0, 0, 1};

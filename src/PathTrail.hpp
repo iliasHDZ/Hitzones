@@ -8,7 +8,7 @@ public:
 
     void addPoint(const cocos2d::CCPoint& point);
 
-    void draw(cocos2d::CCDrawNode* drawNode);
+    void draw(cocos2d::CCDrawNode* drawNode, const cocos2d::ccColor3B& color);
 
     inline void clear() {
         points.clear();

@@ -22,21 +22,26 @@ void PathTrail::addPoint(const CCPoint& point) {
     points.push_back({point, kPathLifetime});
 }
 
-void PathTrail::draw(CCDrawNode* drawNode) {
+void PathTrail::draw(CCDrawNode* drawNode, const ccColor3B& color) {
     if (points.size() < 2)
         return;
 
     for (int i = 0; i < points.size() - 1; i++) {
         std::array<CCPoint, 2> pointPair = { points[i].position, points[i + 1].position };
-        drawNode->drawLines(pointPair.data(), 2, 1.0f, {0.0f, 1.0f, 0.0f, 1.0f});
+        drawNode->drawLines(pointPair.data(), 2, 1.0f, ccc4FFromccc3B(color));
     }
 
     for (const auto& input : inputs) {
-        ccColor4F color = input.pressed
-                            ? ccColor4F { 0.2, 0.2, 1, 1 }
-                            : ccColor4F { 1, 0.6, 0, 1 };
+        auto color = input.pressed
+                            ? ccColor3B { 252, 140, 3 }
+                            : ccColor3B { 3, 157, 252 };
 
-		drawNode->drawCircle(input.position, 3.0f, color, 0.5f, {0, 0, 0, 1}, 8);
+        auto colorFloat = ccc4FFromccc3B(color);
+
+        if (input.pressed)
+            drawNode->drawRect(CCRect {input.position - 2.0f, {4.0f, 4.0f}}, colorFloat, 0.0f, {0});
+        else
+		    drawNode->drawCircle(input.position, 2.0f, colorFloat, 0.0f, {0}, 8);
     }
 }
 

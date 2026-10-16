@@ -1,6 +1,7 @@
 #include <Geode/Geode.hpp>
 #include "Box.hpp"
 #include "PolygonUnionRenderer.hpp"
+#include "PathTrail.hpp"
 
 using namespace geode::prelude;
 
@@ -37,18 +38,17 @@ static std::vector<CCPoint> generateCircle(const CCPoint& center, float radius) 
 
 #define kBlockInset 0.3f
 
-struct PathPoint {
-	CCPoint point;
-	float lifetime;
-};
+static PathTrail player1Path;
+static PathTrail player2Path;
 
-static std::vector<PathPoint> playerPath;
+static bool wasPlayer1ButtonDown = false;
+static bool wasPlayer2ButtonDown = false;
 
 static bool hitzonesEnabled = false;
 static bool hitzonesOnDeath = false;
 static bool showTrailLine = false;
-
-#define kPathLifetime 2.0f
+static bool showInputIndicators = false;
+static bool wasDual = false;
 
 static bool doIntersect(CCPoint p1, CCPoint q1, CCPoint p2, CCPoint q2, CCPoint& res) {
     double a1 = q1.y - p1.y;
@@ -90,18 +90,23 @@ class $modify(MyPlayLayer, PlayLayer) {
 		m_objectLayer->addChild(node1);
 		m_fields->drawNode = node1;
 
-		playerPath.clear();
+		player1Path.clear();
+		player2Path.clear();
+
+		wasDual = m_gameState.m_isDualMode;
 
 		hitzonesEnabled = Mod::get()->getSettingValue<bool>("enabled");
 		hitzonesOnDeath = Mod::get()->getSettingValue<bool>("hitzones-on-death");
 		showTrailLine = Mod::get()->getSettingValue<bool>("show-trail-line");
+		showInputIndicators = Mod::get()->getSettingValue<bool>("show-input-indicators");
 
 		return true;
 	}
 
 	void resetLevel() {
 		PlayLayer::resetLevel();
-		playerPath.clear();
+		player1Path.clear();
+		player2Path.clear();
 	}
 
 	void updateVisibility(float dt) {
@@ -109,16 +114,31 @@ class $modify(MyPlayLayer, PlayLayer) {
 
 		if (m_fields->renderer) m_fields->renderer->setVisible(isEnabled);
 		if (m_fields->drawNode) m_fields->drawNode->setVisible(isEnabled);
+
+		if (!wasDual && m_gameState.m_isDualMode) {
+			player2Path.clear();
+			wasPlayer2ButtonDown = m_player2->m_jumpBuffered;
+		}
+		wasDual = m_gameState.m_isDualMode;
 		
 		if (showTrailLine && (hitzonesOnDeath || isEnabled)) {
-			for (auto& point : playerPath)
-				point.lifetime -= dt;
+			player1Path.update(dt);
+			player2Path.update(dt);
 
-			while (playerPath.size() > 0 && playerPath[0].lifetime <= 0.0f)
-				playerPath.erase(playerPath.begin());
+			player1Path.addPoint(m_player1->getRealPosition());
 
-			playerPath.push_back({m_player1->getRealPosition(), kPathLifetime});
+			if (wasPlayer1ButtonDown != m_player1->m_jumpBuffered && showInputIndicators)
+				player1Path.addInput(m_player1->m_jumpBuffered);
+
+			if (m_gameState.m_isDualMode) {
+				player2Path.addPoint(m_player2->getRealPosition());
+				if (wasPlayer2ButtonDown != m_player2->m_jumpBuffered && showInputIndicators)
+					player2Path.addInput(m_player2->m_jumpBuffered);
+			}
 		}
+
+		wasPlayer1ButtonDown = m_player1->m_jumpBuffered;
+		wasPlayer2ButtonDown = m_player2->m_jumpBuffered;
 
 		if (!isEnabled || !m_fields->renderer)
 			return PlayLayer::updateVisibility(dt);
@@ -126,13 +146,17 @@ class $modify(MyPlayLayer, PlayLayer) {
 		m_fields->renderer->clear();
 		m_fields->drawNode->clear();
 
-		for (int i = 0; i < playerPath.size() - 1; i++) {
-			std::array<CCPoint, 2> points = { playerPath[i].point, playerPath[i + 1].point };
-			m_fields->drawNode->drawLines(points.data(), 2, 1.0f, {0.0f, 1.0f, 0.0f, 1.0f});
-		}
+		player1Path.draw(m_fields->drawNode);
+		player2Path.draw(m_fields->drawNode);
 
-		if (Mod::get()->getSettingValue<bool>("show-player-center-point"))
-			m_fields->drawNode->drawCircle(m_player1->getRealPosition(), 2.0f, {1, 0, 0, 1}, 0.0f, {0}, 8);
+		if (Mod::get()->getSettingValue<bool>("show-player-center-point")) {
+			const ccColor4F circleColor = {1, 0, 0, 1};
+			const float circleRadius = 2.0f;
+
+			m_fields->drawNode->drawCircle(m_player1->getRealPosition(), circleRadius, circleColor, 0.0f, {0}, 8);
+			if (m_gameState.m_isDualMode)
+				m_fields->drawNode->drawCircle(m_player2->getRealPosition(), circleRadius, circleColor, 0.0f, {0}, 8);
+		}
 
 		std::vector<GameObject*> hazards;
 		std::vector<GameObject*> solids;

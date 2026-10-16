@@ -8,12 +8,15 @@
 	},
 	"id": "iliashdz.hitzones",
 	"name": "Hitzones",
-	"version": "v1.0.1",
+	"version": "v1.1.0",
 	"developer": "IliasHDZ",
 	"description": "Reimagines hitboxes with the player as a point",
 	"dependencies": {
 		"geode.node-ids": ">=v1.23.3"
 	},
+	"links": {
+		"source": "https://github.com/iliasHDZ/Hitzones"
+	},	
 	"tags": [
 		"enhancement",
 		"utility",
@@ -63,6 +66,12 @@
 			"type": "bool",
 			"name": "Show player center point",
 			"description": "Shows a red point at the player's center",
+			"default": true
+		},
+		"show-input-indicators": {
+			"type": "bool",
+			"name": "Show input indicators",
+			"description": "Shows a blue or orange point when the player clicks or releases",
 			"default": true
 		}
 	}

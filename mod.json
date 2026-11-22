@@ -8,7 +8,7 @@
 	},
 	"id": "iliashdz.hitzones",
 	"name": "Hitzones",
-	"version": "v1.1.0",
+	"version": "v1.2.0",
 	"developer": "IliasHDZ",
 	"description": "Reimagines hitboxes with the player as a point",
 	"dependencies": {

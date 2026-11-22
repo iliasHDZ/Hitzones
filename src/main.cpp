@@ -70,6 +70,8 @@ static bool doIntersect(CCPoint p1, CCPoint q1, CCPoint p2, CCPoint q2, CCPoint&
     return false;
 }
 
+#define kBlockInset 0.3f
+
 #include <Geode/modify/PlayLayer.hpp>
 class $modify(MyPlayLayer, PlayLayer) {
 	struct Fields {
@@ -77,8 +79,8 @@ class $modify(MyPlayLayer, PlayLayer) {
 		CCDrawNode* drawNode;
 	};
 
-	bool init(GJGameLevel* level, bool useReplay, bool dontCreateObjects) {
-		if (!PlayLayer::init(level, useReplay, dontCreateObjects)) return false;
+	bool init(GJGameLevel* level, bool dontCreateObjects) {
+		if (!PlayLayer::init(level, dontCreateObjects)) return false;
 		
 		auto node = PolygonUnionRenderer::create();
 		node->setZOrder(5000);
@@ -182,6 +184,12 @@ class $modify(MyPlayLayer, PlayLayer) {
 		const CCRect& playerHitbox = m_player1->getObjectRect();
 		Box playerBox = Box::fromOBB2D(*m_player1->getOrientedBox());
 
+		CCRect playerInnerHitbox = CCRect(
+			playerHitbox.origin + (playerHitbox.size - playerHitbox.size * kBlockInset) / 2.0f,
+			playerHitbox.size * kBlockInset
+		);
+		// m_player1->get
+
 		std::vector<std::vector<CCPoint>> polygons;
 
 		for (auto obj : solids) {
@@ -271,6 +279,17 @@ class $modify(MyPlayLayer, PlayLayer) {
 			m_fields->renderer->addInsetConvexPolygon(polygon, solidFillColor, kBorderWidth);
 
 		polygons.clear();
+
+		for (auto obj : solids) {
+			CCRect hitbox = obj->getObjectRect();
+			
+			if (obj->m_objectType == GameObjectType::Solid) {
+				hitbox.origin = hitbox.origin - playerInnerHitbox.size / 2.0f;
+				hitbox.size   = hitbox.size + playerInnerHitbox.size;
+
+				polygons.push_back(generateRect(hitbox));
+			}
+		}
 
 		for (auto obj : hazards) {
 			if (obj->m_shouldUseOuterOb) {
